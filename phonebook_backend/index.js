@@ -28,6 +28,12 @@ let phonebook = [
 ];
 
 app.get('/api/persons', (req, res) => res.json({phonebook}));
-
+app.get('/info', (req, res) => {
+  let info = {
+    message: `Phonebook has info for ${phonebook.length} people`,
+    date: new Date().toString()
+  }
+  res.json({info});
+});
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
