@@ -4,7 +4,7 @@ const app = express();
 const PORT = 3001;
 app.use(express.json())
 
-let phonebook = [
+let persons = [
   { 
     "id": 1,
     "name": "Arto Hellas", 
@@ -27,13 +27,22 @@ let phonebook = [
   }
 ];
 
-app.get('/api/persons', (req, res) => res.json({phonebook}));
+app.get('/api/persons', (req, res) => res.json({persons}));
 app.get('/info', (req, res) => {
   let info = {
-    message: `Phonebook has info for ${phonebook.length} people`,
+    message: `Phonebook has info for ${persons.length} people`,
     date: new Date().toString()
   }
   res.json({info});
+});
+
+app.get('/api/persons/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const person = persons.find(p => p.id === (id));
+  if(!person){
+    res.status(404).end()
+  }
+  res.json(person);
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
