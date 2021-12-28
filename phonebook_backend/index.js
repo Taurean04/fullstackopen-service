@@ -51,4 +51,24 @@ app.delete('/api/persons/:id', (req, res) => {
   res.status(204).end()
 });
 
+const generateId = () => {
+  const max_id = persons.length > 0 ? Math.floor(Math.random() * 2000) : 0;
+  return max_id;
+}
+
+app.post('/api/persons', (req, res) => {
+  let name = req.body.name;
+  let number = req.body.number;
+  if(!name){
+    return res.status(400).json({error: 'Person name is missing'});
+  }
+  const person = {
+    name,
+    number,
+    id: generateId()
+  };
+  persons = persons.concat(person);
+  res.json(person);
+});
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
