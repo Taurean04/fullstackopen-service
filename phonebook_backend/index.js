@@ -5,7 +5,12 @@ const app = express();
 const PORT = 3001;
 app.use(express.json());
 
-app.use(morgan('tiny'));
+morgan.token('body', req => {
+  return JSON.stringify(req.body)
+})
+
+app.use(morgan(':method :url :body'))
+
 
 let persons = [
   { 
@@ -66,7 +71,7 @@ app.post('/api/persons', (req, res) => {
   if(!name || !number){
     return res.status(400).json({error: 'Person name or number is missing'});
   }
-  if(!name_exists){
+  if(name_exists){
     return res.status(400).json({error: 'name must be unique'});
   }
   const person = {
