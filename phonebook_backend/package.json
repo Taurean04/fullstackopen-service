@@ -1,7 +1,7 @@
 {
   "name": "phonebook_backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Backend Service for Phonebook react app",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -10,7 +10,12 @@
     "build:ui": "rm -rf build && cd ../../fullstackopen/part2/phonebook && npm run build && cp -r build ../../../fullstackopen-service/phonebook_backend",
     "deploy": "git push heroku master",
     "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push && npm run deploy",
-    "logs:prod": "heroku logs --tail"
+    "logs:prod": "heroku logs --tail",
+    "lint": "npx eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Taurean04/fullstackopen-service.git"
   },
   "keywords": [],
   "author": "",
@@ -22,5 +27,8 @@
     "mongoose": "^6.1.4",
     "mongoose-unique-validator": "^3.0.0",
     "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.5.0"
   }
 }
