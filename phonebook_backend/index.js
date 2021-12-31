@@ -18,37 +18,46 @@ app.use(morgan(':method :url :body'));
 
 app.get('/', (req, res) => res.send('<h1>PhoneBook Service</h1>'));
 
-app.get('/api/persons', (req, res) => {
+app.get('/api/persons', (req, res, next) => {
   Person.find({})
   .then(persons => {
     res.json(persons);
-  });
+  })
+  .catch(e => next(e));
 });
 
-app.get('/info', (req, res) => {
-  let info = {
-    message: `Phonebook has info for ${persons.length} people`,
-    date: new Date().toString()
-  }
-  res.json(info);
+app.get('/info', (req, res, next) => {
+  Person.find({})
+  .then(persons => {
+    let info = {
+      message: `Phonebook has info for ${persons.length} people`,
+      date: new Date().toString()
+    }
+    res.json(info);
+  })
+  .catch(e => next(e));
 });
 
-app.get('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id);
-  const person = persons.find(p => p.id === (id));
-  if(!person){
-    res.status(404).end()
-  }
-  res.json(person);
+app.get('/api/persons/:id', (req, res) => {  
+  Person.findById(req.params.id)
+  .then(person => {
+    if(!person){
+      res.status(404).end();
+    }
+    res.json(person);
+  }).catch(e => next(e));
 });
 
-app.delete('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id);
-  persons = persons.filter(n => n.id !== (id));
-  res.status(204).end()
+app.delete('/api/persons/:id', (req, res, next) => {
+  Person.findByIdAndRemove(req.params.id)
+  .then(result => {
+    console.log(result);
+    res.status(204).end();
+  })
+  .catch(e => next(e));
 });
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
   let name = req.body.name;
   let number = req.body.number;
   
@@ -70,9 +79,37 @@ app.post('/api/persons', (req, res) => {
       .then(saved => {
         console.log(`Added ${person.name} number ${person.number} to  phonebook`);
         res.json(saved);
-      });
+      })
+      .catch(e => next(e));
     }
-  });
+  })
+  .catch(e => next(e));
 });
+
+app.put('/api/persons/:id', (req, res, next) => {
+  const body = req.body;
+
+  Person.findByIdAndUpdate(req.params.id, {number: body.number}, { new: true })
+  .then(updated => {
+    res.json(updated);
+  })
+  .catch(e => next(e));
+});
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' });
+}
+
+const errorHandler = (error, req, res, next) => {
+  console.error(error.message);
+
+  if (error.name === 'CastError') {
+    return res.status(400).send({ error: 'malformatted ID' });
+  } 
+  next(error);
+}
+
+app.use(unknownEndpoint);
+app.use(errorHandler);
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
