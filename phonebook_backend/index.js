@@ -65,23 +65,15 @@ app.post('/api/persons', (req, res, next) => {
     return res.status(400).json({error: 'Person name or number is missing'});
   }
 
-  Person.findOne({name})
-  .then(person => {
-    if(person){
-      return res.status(400).json({error: 'name must be unique'});
-    }else{
-      const person = new Person({
-        name,
-        number
-      });
-    
-      person.save()
-      .then(saved => {
-        console.log(`Added ${person.name} number ${person.number} to  phonebook`);
-        res.json(saved);
-      })
-      .catch(e => next(e));
-    }
+  const person = new Person({
+    name,
+    number
+  });
+
+  person.save()
+  .then(saved => {
+    console.log(`Added ${person.name} number ${person.number} to  phonebook`);
+    res.json(saved);
   })
   .catch(e => next(e));
 });
@@ -105,7 +97,9 @@ const errorHandler = (error, req, res, next) => {
 
   if (error.name === 'CastError') {
     return res.status(400).send({ error: 'malformatted ID' });
-  } 
+  }else if (error.name === 'ValidationError') {    
+    return res.status(400).send({ error: error.message });
+  }
   next(error);
 }
 
