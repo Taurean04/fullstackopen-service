@@ -2,8 +2,10 @@ const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
 const app = express();
+require('dotenv').config();
+const Person = require('./models/person');
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 app.use(express.json());
 app.use(cors());
 app.use(express.static('build'))
@@ -12,34 +14,17 @@ morgan.token('body', req => {
   return JSON.stringify(req.body)
 })
 
-app.use(morgan(':method :url :body'))
-
-
-let persons = [
-  { 
-    "id": 1,
-    "name": "Arto Hellas", 
-    "number": "040-123456"
-  },
-  { 
-    "id": 2,
-    "name": "Ada Lovelace", 
-    "number": "39-44-5323523"
-  },
-  { 
-    "id": 3,
-    "name": "Dan Abramov", 
-    "number": "12-43-234345"
-  },
-  { 
-    "id": 4,
-    "name": "Mary Poppendieck", 
-    "number": "39-23-6423122"
-  }
-];
+app.use(morgan(':method :url :body'));
 
 app.get('/', (req, res) => res.send('<h1>PhoneBook Service</h1>'));
-app.get('/api/persons', (req, res) => res.json(persons));
+
+app.get('/api/persons', (req, res) => {
+  Person.find({})
+  .then(persons => {
+    res.json(persons);
+  });
+});
+
 app.get('/info', (req, res) => {
   let info = {
     message: `Phonebook has info for ${persons.length} people`,
@@ -63,28 +48,31 @@ app.delete('/api/persons/:id', (req, res) => {
   res.status(204).end()
 });
 
-const generateId = () => {
-  const max_id = persons.length > 0 ? Math.floor(Math.random() * 2000) : 0;
-  return max_id;
-}
-
 app.post('/api/persons', (req, res) => {
   let name = req.body.name;
   let number = req.body.number;
-  let name_exists = persons.find(p => p.name === name);
+  
   if(!name || !number){
     return res.status(400).json({error: 'Person name or number is missing'});
   }
-  if(name_exists){
-    return res.status(400).json({error: 'name must be unique'});
-  }
-  const person = {
-    name,
-    number,
-    id: generateId()
-  };
-  persons = persons.concat(person);
-  res.json(person);
+
+  Person.findOne({name})
+  .then(person => {
+    if(person){
+      return res.status(400).json({error: 'name must be unique'});
+    }else{
+      const person = new Person({
+        name,
+        number
+      });
+    
+      person.save()
+      .then(saved => {
+        console.log(`Added ${person.name} number ${person.number} to  phonebook`);
+        res.json(saved);
+      });
+    }
+  });
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
